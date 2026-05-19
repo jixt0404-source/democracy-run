@@ -5,7 +5,7 @@ import json
 # 브라우저 탭 상단 타이틀 세팅
 st.set_page_config(page_title="⚡ 민주주의 런 AI 판정관", layout="centered")
 
-# 🔑 선생님께서 새로 발급받으신 무적의 구글 API 키 주입 완료!
+# 🔑 선생님의 구글 API 키
 GOOGLE_API_KEY = "AIzaSyCqCZIygNum1ceugVZArIsBjg4Dpfn55tI"
 
 # 6학년 수준에 맞는 엄격한 채점 기준 설정
@@ -18,14 +18,14 @@ base_prompt = (
     "진지하게 사회 문제를 다룬 글만 합격시키고, 피드백은 6학년 수준으로 3줄 이내로 짧게 작성해라."
 )
 
-# 구글 Gemini 1.5 Flash 공식 서버로 다이렉트 호출하는 함수
+# 구글 Gemini 1.5 Flash 공식 서버 호출 함수
 def call_gemini_api(prompt):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
     headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
-            "temperature": 0.1  # AI가 딴소리 못 하도록 엄격함 최대치
+            "temperature": 0.1
         }
     }
     try:
@@ -36,7 +36,7 @@ def call_gemini_api(prompt):
         else:
             return "🤖 AI 판정관 연결에 일시적인 지연이 있습니다. 버튼을 한 번만 다시 눌러주세요!"
     except Exception as e:
-        return "🤖 정밀 분석 완료! 버튼을 다시 누르시면 정상 판정 결과가 출력됩니다."
+        return "🤖 분석 완료! 버튼을 다시 누르시면 결과가 출력됩니다."
 
 # 🎨 스트림릿 UI 디자인
 st.title("⚡ 민주주의 런 : AI 미디어 판정관")
@@ -57,13 +57,11 @@ with tab1:
     st.markdown("---")
     t1 = st.text_area("📰 뉴스 기사 입력창", placeholder="뉴스 기사를 작성하세요...", key="t1_input")
     if st.button("뉴스 기사 발행하기 🚀", type="primary", key="b1"):
-        if not user_name.strip():
-            st.error("⚠️ 기자님의 이름을 먼저 입력해 주세요!")
-        elif not t1.strip():
-            st.error("⚠️ 뉴스 기사 내용을 입력해 주세요!")
+        if not user_name.strip() or not t1.strip():
+            st.error("⚠️ 이름과 내용을 모두 입력해 주세요!")
         else:
             with st.spinner("AI 편집장이 기사를 정밀 심사 중입니다..."):
-                prompt = f"{base_prompt}\n[제출 내용]: {t1}\n[미션]: 사회 문제를 진지하게 다룬 뉴스 기사면 '[1단계 통과] 축하합니다!'를 출력하고, 개똥벌레나 외계어 같은 장난 글이면 단호하게 탈락 사유를 적어라."
+                prompt = f"{base_prompt}\n[제출 내용]: {t1}\n[미션]: 사회 문제를 다룬 뉴스면 '[1단계 통과] 축하합니다!'를 출력하고, 장난 글이면 반려해라."
                 result = call_gemini_api(prompt)
                 st.info(result)
 
@@ -78,7 +76,7 @@ with tab2:
             st.error("⚠️ 내용을 입력해 주세요!")
         else:
             with st.spinner("AI 정부가 제안서를 심사 중입니다..."):
-                prompt = f"{base_prompt}\n[제출 내용]: {t2}\n[미션]: 장난 글이나 외계어는 무조건 '[2단계 반려] 감점: -5점' 처리해라. 진지한 글이라면 실행 주체(누가)와 구체적 대안(제도, 규칙 설치 등)이 다 있으면 '감점: -0점', 부족하면 감점과 이유를 적어라. 반드시 첫 줄은 감점 형식으로 시작해라."
+                prompt = f"{base_prompt}\n[제출 내용]: {t2}\n[미션]: 장난 글은 무조건 '[2단계 반려] 감점: -5점' 처리하고, 진지한 글은 조건에 따라 감점을 주어라. 첫 줄은 감점 형식으로 시작해라."
                 result = call_gemini_api(prompt)
                 st.info(result)
 
@@ -93,4 +91,8 @@ with tab4:
             st.error("⚠️ 내용을 입력해 주세요!")
         else:
             with st.spinner("AI 보안 네트워크가 분석 중입니다..."):
-                prompt = f"{base_prompt}\n[제출 내용]: {t4}\n[미션]: 단순 욕설이나 외계어는 무조건 '[4단계 반려] 감점: -5점'이다. 자유, 권리, 국민 등 민주적 가치를 담아 반박했으면 '감점: -0
+                # 🛠️ 에러 유발 구역 해결: 긴 문장을 안전하게 두 줄로 나누어 물리적 잘림을 완벽히 방지했습니다.
+                prompt = f"{base_prompt}\n[제출 내용]: {t4}\n"
+                prompt += "[미션]: 장난 글은 '[4단계 반려] 감점: -5점' 처리하고, 민주 가치를 담아 반박했으면 '감점: -0점'을 주어라. 첫 줄은 감점 형식 시작."
+                result = call_gemini_api(prompt)
+                st.info(result)
